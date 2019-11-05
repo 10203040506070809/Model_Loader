@@ -8,25 +8,66 @@
 #include "GLFW/glfw3.h"
 #include <fstream>
 
-int main()
-
-{
-	std::cout << "Hello World!\n";
-
+using namespace std;
+///Opens a file
+void OpenFile(string path) {
 	std::string line;
-	std::ifstream myFile("media/Creeper.obj", std::ios::binary);
+	std::ifstream myFile(path, std::ios::binary);
 	if (myFile.is_open())
 	{
 		GLubyte byte; // is 8bit and maps to char
 		while (myFile >> byte)
 		{
-			
+
 			std::cout << byte;
 			//check and map each byte
 			// only read strings if file is in plaintext encoding
 		}
 		myFile.close();
+	}	
+}
+
+///Checks for user input, like quitting and moving between files
+void checkForInput(GLFWwindow *window, int key, int scancode, int action, int mods) {
+	
+
+	if (key == 81) {
+		exit(0);
 	}
+	///Debug method used to check what keycode input is
+	else {
+		std::cout << key << std::endl;
+	}
+}
+
+///
+void GLFWInit() {
+	
+		glfwInit();
+		GLFWwindow* window = glfwCreateWindow(800, 600, "Scene View", NULL, NULL);
+		glfwMakeContextCurrent(window);
+		glewInit();
+		glfwSetKeyCallback(window, checkForInput);
+
+		while (!glfwWindowShouldClose(window))
+		{			
+			glfwSwapBuffers(window);
+			glfwPollEvents();			
+		}
+}
+
+///Main function
+int main()
+{
+
+	std::cout << "Hello World!\n";
+
+	///Initialise GLFW Window
+	GLFWInit();
+
+	///Test method call
+	OpenFile("media/Creeper.obj");
 	
 }
+
 
