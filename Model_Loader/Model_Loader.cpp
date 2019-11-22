@@ -141,6 +141,10 @@ void ParseDAE(ifstream& myFile)
 ///Opens a file by calling the relevant method, based on file extension
 void OpenFile(string path)
 {
+	if (path == "debug") {
+		path = "media/Creeper.obj";
+		cout << "debug mode activated : Creeper.obj loading...";
+	}
 	ifstream myFile(path, std::ios::binary);
 	///Get everything after the last . which should give the filetype
 	string fileType = path.substr(path.find_last_of(".") + 1);
@@ -157,6 +161,9 @@ void OpenFile(string path)
 	else
 	{
 		cout << "File format unknown.";
+		cout << "Paste the path to your model here, including the name. \n  Type 'debug' to open a default file. \n";
+		cin >> path;
+		OpenFile(path);
 	}
 }
 
@@ -195,11 +202,12 @@ void checkForInput(GLFWwindow *window, int key, int scancode, int action, int mo
 }
 
 ///
-void Display(void) 
+void Display() 
 {
 	///Displays a pure white background
 	static const float background[] = { 125.0f, 125.0f, 125.0f, 255.0f };
 	glClearBufferfv(GL_COLOR, 0, background);
+	
 
 
 }
@@ -244,10 +252,6 @@ int main(void)
 	cout << "Paste the path to your model here, including the name. \n  Type 'debug' to open a default file. \n";
 	cin >> path;
 	///Test method call
-
-	if (path == "debug") {
-		path = "media/Creeper.obj";
-	}
 	OpenFile(path);
 
 	///Initialise GLFW Window
