@@ -72,15 +72,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

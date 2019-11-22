@@ -6,6 +6,10 @@
 #include "GL/glew.h"
 #include "GL/freeglut.h"
 #include "GLFW/glfw3.h"
+#include <glm/glm.hpp> //includes GLM
+#include <glm/ext/matrix_transform.hpp> // GLM: translate, rotate
+#include <glm/ext/matrix_clip_space.hpp> // GLM: perspective and ortho 
+#include <glm/gtc/type_ptr.hpp> // GLM: access to the value_ptr
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -14,59 +18,146 @@
 
 using namespace std;
 
-///Opens a file
-void OpenFile(string path) {
+vector<string> SplitString(const string &s, char delimiter) 
+{
+	vector<string> words;
+	stringstream ss(s);
+	string item;
+	while (getline(ss, item, delimiter)) {
+		words.push_back(item);
+	}
+
+	return words;
+}
+
+void LoadObj()
+{
+
+}
+void ParseObj(ifstream& myFile)
+{
+	std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
+	std::vector< glm::vec3 > temp_vertices;
+	std::vector< glm::vec2 > temp_textures;
+	std::vector< glm::vec3 > temp_normals;
+
 	string line;
-	ifstream myFile(path, std::ios::binary);
-	string content;
+	
 	if (myFile.is_open())
 	{
-		GLubyte byte; // is 8bit and maps to char
 		while (!myFile.eof())
 		{
 
-			GLfloat vertices; 
+			
 
 			getline(myFile, line);
-			cout << line + "\n";
 			string firstWord = line.substr(0, line.find(" "));
 
-			
-			//cout << firstWord;
 			///Vertex of models start with V in OBJ files - If the line starts with V, we know the following three values are vertex positions
 			if (firstWord == "v")
 			{
-					///Make vertex vector
+				glm::vec3 vertex;
+				vector<string> words = SplitString(line, ' ');
+				///Can ignore the first point since it's v
+				///string 1 is the first point
+				///string 2 is the second point
+				///string 3 is the third point
+				///Make vertex vector
 
-				vector<float> vertices;
-				//vertices.push_back(stof(line.substr(stof(firstWord), line.find(" "))));
+				vertex.x = stof(words[1]);
+				vertex.y = stof(words[2]);
+				vertex.z = stof(words[3]);
 				
+				temp_vertices.push_back(vertex);
+
 
 			}
 			///Texture coordinates of models start with vt in OBJ files - If the line starts with vt, we know the following two values are texture coordinates
 			else if (firstWord == "vt")
 			{
-				cout << "line starting with VT";
+				glm::vec2 texture;
 
+				vector<string> words = SplitString(line, ' ');
+				///Can ignore the first point since it's v
+				///string 1 is the first point
+				///string 2 is the second point
+				///string 3 is the third point
+
+				texture.x = stof(words[1]);
+				texture.y = stof(words[2]);
+
+				temp_textures.push_back(texture);
 				///Make texture vector
 			}
 			///Normal of one vertex - If the line starts with vn, we know the following three values are normals for each vertex
-			else if (firstWord == "vn") 
+			else if (firstWord == "vn")
 			{
-				cout << "line starting with VN";
+				glm::vec3 normal;
+				vector<string> words = SplitString(line, ' ');
+				///Can ignore the first point since it's v
+				///string 1 is the first point
+				///string 2 is the second point
+				///string 3 is the third point
+				///Make vertex vector
+
+				normal.x = stof(words[1]);
+				normal.y = stof(words[2]);
+				normal.z = stof(words[3]);
 
 				///Make normal vector
+				temp_normals.push_back(normal);
 			}
-			///Debug variable - Holds the entire file line by line
-			//content += line + "\n";
-			
-			//check and map each byte
-			// only read strings if file is in plaintext encoding
+			///Face of the model - If the line starts with f, we know the following values are faces. 
+			else if(firstWord == "f")
+			{
+				//vector<string> words = SplitString(line, ' ');
+
+				//for (int i = 1; i < words.size; i++)
+				//{
+				//	words[i];
+				//}
+			}
+			///If the first word is mtllib, we know the part after this is the material file.
+			else if (firstWord == "mtllib")
+			{   ///Splits the string at each whitespace
+				vector<string> words = SplitString(line, ' ');
+				///Gets the second element in the vector
+				string textureName = words[1];
+				
+			}
 		}
-		//Read content line-by-line
-		//cout << content;
+		///Close the filestream
 		myFile.close();
-	}	
+	}
+
+
+}
+
+void ParseDAE(ifstream& myFile)
+{
+	cout << "DAE found";
+}
+
+///Opens a file by calling the relevant method, based on file extension
+void OpenFile(string path)
+{
+	ifstream myFile(path, std::ios::binary);
+	///Get everything after the last . which should give the filetype
+	string fileType = path.substr(path.find_last_of(".") + 1);
+	///If input is an obj file, call this method
+	if (fileType == "obj")
+	{
+		ParseObj(myFile);
+	}
+	///Else if input is a dae file, call this method
+	else if (fileType == "dae")
+	{
+		ParseDAE(myFile);
+	}
+	else
+	{
+		cout << "File format unknown.";
+	}
 }
 
 ///Checks for user input, like quitting and moving inside the scene
@@ -104,15 +195,19 @@ void checkForInput(GLFWwindow *window, int key, int scancode, int action, int mo
 }
 
 ///
-void Display() 
+void Display(void) 
 {
-	static const float background[] = { 125.0f, 125.0f, 125.0f, 255.0f };	glClearBufferfv(GL_COLOR, 0, background);
+	///Displays a pure white background
+	static const float background[] = { 125.0f, 125.0f, 125.0f, 255.0f };
+	glClearBufferfv(GL_COLOR, 0, background);
 
 
 }
+///Passing void as a parameter makes certain the compiler knows NOTHING can be passed as a parameter. In default C, not having this means anything can be passed.
+void init(void) {
 
-void init() {
 
+	///Deal with shaders here
 }
 ///
 void GLFWInit() {
@@ -121,7 +216,7 @@ void GLFWInit() {
 		glfwInit();
 		///Creates a window of a determined size with a title
 		GLFWwindow* window = glfwCreateWindow(800, 600, "Scene View", NULL, NULL);
-
+		///Make the window the currently highlighted window
 		glfwMakeContextCurrent(window);
 		///Initialises glew
 		glewInit();
@@ -135,6 +230,7 @@ void GLFWInit() {
 			Display();
 			glfwSwapBuffers(window);
 			glfwPollEvents();			
+			
 		}
 
 		glfwDestroyWindow(window);
@@ -142,13 +238,17 @@ void GLFWInit() {
 }
 
 ///Main function
-int main()
+int main(void)
 {
-
-	std::cout << "Hello World!\n";
-
+	string path;
+	cout << "Paste the path to your model here, including the name. \n  Type 'debug' to open a default file. \n";
+	cin >> path;
 	///Test method call
-	OpenFile("media/Creeper.obj");
+
+	if (path == "debug") {
+		path = "media/Creeper.obj";
+	}
+	OpenFile(path);
 
 	///Initialise GLFW Window
 	GLFWInit();
