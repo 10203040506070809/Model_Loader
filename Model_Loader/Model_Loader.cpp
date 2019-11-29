@@ -35,14 +35,10 @@ GLuint shader;
 
 #define BUFFER_OFFSET(a) ((void*)(a))
 
-vector<vec3> out_vertices;
-vector<vec2> out_uvs;
-vector<vec3> out_normals;
-vector<GLuint> vertexIndices, uvIndices, normalIndices;
-vector<vec3> vertices;
-vector<vec2> texture_coords;
-vector<vec3> normals;
-vector<vec3> indices;
+vector<vector<GLfloat>> vertices;
+vector<vector<GLfloat>> texture_coords;
+vector<vector<GLfloat>> normals;
+vector<vector<GLfloat>> indices;
 //Splits strings into a vector of strings and returns it.
 vector<string> SplitString(const string &s, char delimiter) 
 {
@@ -79,7 +75,7 @@ void ParseObj(ifstream& myFile, string path)
 			//Geometric vertices of models start with V in OBJ files - If the line starts with V, we know the following three values are vertex positions
 			else if (firstWord == "v")
 			{
-				glm::vec3 vertex;
+				vector<GLfloat> vertex;
 				vector<string> words = SplitString(line, ' ');
 				//Can ignore the first point since it's v
 				//string 1 is the first data point
@@ -89,9 +85,9 @@ void ParseObj(ifstream& myFile, string path)
 				//Adds the three float values to a vector, e.g in the creeper.obj, the first vertex is 0.5, -0.5, -0.5. 
 				//x = 0.5, y = - 0.5 z = -0.5
 				//It would push back 0.5, then -0.5, then -0.5.
-				vertex.x = stof(words[1]);
-				vertex.y = stof(words[2]);
-				vertex.z = stof(words[3]);
+				vertex.push_back(stof(words[1]));
+				vertex.push_back(stof(words[2]));
+				vertex.push_back(stof(words[3]));
 				//This is then added to a vector
 				vertices.push_back(vertex);		
 
@@ -99,33 +95,32 @@ void ParseObj(ifstream& myFile, string path)
 			//Texture vertices of models start with vt in OBJ files - If the line starts with vt, we know the following two values are texture coordinates
 			else if (firstWord == "vt")
 			{
-				glm::vec2 texture;
+				vector<GLfloat> texture;
 
 				vector<string> words = SplitString(line, ' ');
 				//Can ignore the first point since it's v
 				//string 1(i=0) is the first point
 				//string 2(i=1) is the second point
 				//string 3(i=2) is the third point
-				texture.x = stof(words[1]);
-				texture.y = stof(words[2]);
-				texture_coords.push_back(texture);
+				texture.push_back(stof(words[1]));
+				texture.push_back(stof(words[2]));
 				//Make texture vector
 
-			
+				texture_coords.push_back(texture);
 			}
 			//Vertex normals - If the line starts with vn, we know the following three values are normals for each vertex
 			else if (firstWord == "vn")
 			{
-				glm::vec3 normal;
+				vector<GLfloat> normal;
 				vector<string> words = SplitString(line, ' ');
 				//Can ignore the first point since it's vn
 				//string 1 is the first point
 				//string 2 is the second point
 				//string 3 is the third point
 				//Make vertex vector
-				normal.x = stof(words[1]);
-				normal.y = stof(words[2]);
-				normal.z = stof(words[3]);
+				normal.push_back(stof(words[1]));
+				normal.push_back(stof(words[2]));
+				normal.push_back(stof(words[3]));
 				//Make normal vector
 				normals.push_back(normal);
 			}
@@ -169,25 +164,59 @@ void ParseObj(ifstream& myFile, string path)
 				//if obj uses tris and has three face vectors. //TODO
 				if (words.size() == 4) {
 					
+					vector<GLfloat> vIndices;
+					vector<GLuint> tIndices;
+					vector<GLfloat> nIndices;
+
 					for (size_t i = 1; i < words.size(); i++)
 					{
-						//vector<string> faces = SplitString(words[i], '/');
-						//vertexIndices.push_back(stoul(faces[0]));
-						//uvIndices.push_back(stoul(faces[1]));
-						//normalIndices.push_back(stoul(faces[2]));
+						//Splits the value of each part of words(x/x/x) by /, giving you three values of v, vt and vn
+						vector<string> faces = SplitString(words[i], '/');
+
+						for (size_t j = 0; j < faces.size(); j++)
+						{
+							vIndices.push_back(stof(faces[0]));
+							tIndices.push_back(stoul(faces[1]));
+							nIndices.push_back(stof(faces[2]));
+						}
+
 					}
 	
 				}
 				//If obj uses quads
 				else if (words.size() == 5) {
 				
+					vector<GLfloat> vIndices;
+					vector<GLuint> tIndices;
+					vector<GLfloat> nIndices;
+					vector<vector<string>> faceValues;
+					vector<vector<GLfloat>> faceV;
 					for (size_t i = 1; i < words.size(); i++)
 					{
-						
 						//Splits the value of each part of words(x/x/x) by /, giving you three values of v, vt and vn
 						vector<string> faces = SplitString(words[i], '/');
-
+						//After the line has been read, this should have vectors of all faces
+						faceValues.push_back(faces);
 					}
+					//Convert each value to a float
+					for(vector<string> x : faceValues)
+					{
+						vector<GLfloat> fv;
+						for (size_t i = 0; i < x.size(); i++)
+						{
+							
+							fv.push_back(stof(x[i]));
+						}
+						faceV.push_back(fv);
+					}
+					//Push the faces in the order: 0,1,2 0,2,3 - Converts polys to tris.
+					indices.push_back(faceV[0]);
+					indices.push_back(faceV[1]);
+					indices.push_back(faceV[2]);
+
+					indices.push_back(faceV[0]);
+					indices.push_back(faceV[2]);
+					indices.push_back(faceV[3]);
 				}
 				else {
 					cout << "This model loader doesn't support this n-gon. You have " << words.size() << " number of vertexes within this face.";
@@ -196,7 +225,7 @@ void ParseObj(ifstream& myFile, string path)
 			}
 			//If the first word is mtllib, we know the part after this is the material library.
 			else if (firstWord == "mtllib")
-			{   //Splits the string at each whitespace
+			{   //Splits the string at each whitespaces
 				vector<string> words = SplitString(line, ' ');
 				//Gets the second element in the vector
 				string textureName = words[1];	
@@ -231,6 +260,7 @@ void ParseDAE(ifstream& myFile)
 	cout << "DAE found";
 }
 
+//Opens a file by calling the relevant method, based on file extension. //TODO  DAE support
 void OpenFile(string path)
 {
 	if (path == "debug") {
@@ -258,6 +288,7 @@ void OpenFile(string path)
 		OpenFile(path);
 	}
 }
+
 
 //Checks for user input, like quitting and moving inside the scene.
 void checkForInput(GLFWwindow *window, int key, int scancode, int action, int mods) {
