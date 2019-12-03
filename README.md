@@ -26,18 +26,18 @@ FreeGLUT, GLFW and GLEW are used within this project. To easily download these, 
 ## Developed using
 Developed using Visual Studio on the  Windows SDK Version 10.0.17763.0 with the platform toolset v141.
 
-#How does it work?
+# How does it work?
 
-##SplitString
+## SplitString
 
 Parameters:
 Const &string, char delimiter
 Const &string - the string you're splitting
 Char delimiter - the delimiter you're splitting by
 Splits a string by a delimiter and returns a vector string. 
-##LoadObj
+## LoadObj
 TODO
-##ParseObj
+## ParseObj
 
 Parameters: Ifstream file, string path
 Ifstream file - the file stream that should already be open
@@ -45,23 +45,23 @@ String path - the path of the object to load
 Read through an obj file line by line and checks for the first word of each line. 
 Depending on what the word is, it'll split the following values and add them to a vector. 
 
-##ParseDAE
+## ParseDAE
 TODO
-##OpenFile
+## OpenFile
 Takes in a path as a console input and splits it at the last .
 Everything after and including the dot is taken as a file extension
 And used to decide how to load it
 
-##checkForInput
+## checkForInput
 Checks for user input within the OpenGL window
 
-##Display
+## Display
 
-##init
+## init
 
-#GLFWInit
+## GLFWInit
 
-#Main
+## Main
 
 
 
