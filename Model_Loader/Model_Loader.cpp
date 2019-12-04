@@ -59,7 +59,7 @@ void LoadObj()
 void ParseObj(ifstream& myFile, string path)
 {
 	string line;
-	myFile.open(path);
+	//myFile.open(path);
 	if (myFile.is_open())
 	{
 		//clear all vectors here
@@ -186,10 +186,7 @@ void ParseObj(ifstream& myFile, string path)
 				}
 				//If obj uses quads
 				else if (words.size() == 5) {
-				
-					vector<GLfloat> vIndices;
-					vector<GLuint> tIndices;
-					vector<GLfloat> nIndices;
+
 					vector<vector<string>> faceValues;
 					vector<vector<GLfloat>> faceV;
 					for (size_t i = 1; i < words.size(); i++)
@@ -265,10 +262,17 @@ void ParseDAE(ifstream& myFile)
 void OpenFile(string path)
 {
 	if (path == "debug") {
-		path = "Model_Loader/Media/Models/Creeper.obj";
+		path = "Media/Models/Creeper.obj";
 		cout << "debug mode activated : Creeper.obj loading...";
 	}
-	ifstream myFile(path, std::ios::binary);
+	ifstream myFile;
+	myFile.open(path);
+	if (myFile.fail())
+	{
+		cout << "\n File not found, try again:";
+		cin >> path;
+		OpenFile(path);
+	}
 	//Get everything after the last . which should give the filetype
 	string fileType = path.substr(path.find_last_of(".") + 1);
 	//If input is an obj file, call this method
@@ -375,9 +379,8 @@ void Display(GLfloat delta)
 	glEnable(GL_CULL_FACE);
 
 	glBindVertexArray(VAOs[Model]);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-
+	//glBindTexture(GL_TEXTURE_2D, texture1);
+	glDrawElements(GL_TRIANGLES, vertices.size() * sizeof(vector<GLfloat>), GL_UNSIGNED_INT, 0);
 
 }
 void init(void) {
@@ -404,6 +407,9 @@ void init(void) {
 	glGenBuffers(NumBuffers, Buffers);
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Model]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>), &indices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[Indices]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vector<GLfloat>), &indices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
@@ -474,6 +480,7 @@ int main(int argc, char** argv)
 	string path;
 	cout << "Paste the path to your model here, including the name. \n  Type 'debug' to open a default file. \n";
 	cin >> path;
+
 	//Calls the OpenFile method
 	OpenFile(path);
 
