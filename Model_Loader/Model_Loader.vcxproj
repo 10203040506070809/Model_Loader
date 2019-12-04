@@ -161,6 +161,7 @@
   <ItemGroup>
     <ClInclude Include="Libraries\LoadShaders\LoadShaders.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Libraries\LoadShaders\LoadShaders.cpp" />
