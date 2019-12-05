@@ -26,9 +26,9 @@ using namespace glm;
 //TODO Remove these from global
 ///Vertex Array Objects are objects which contain one or more vertex buffer objects and is designed to store the
 ///information for a complete rendered object
-enum VAO_IDs {Model, NumVAOs = 1 };
+enum VAO_IDs { Triangles, Indices, Colours, Tex, NumVAOs = 1 };
 ///Vertex Buffer Objects are a method of uploading vertex data for rendering
-enum Buffer_IDs { Triangles, Colours, Normals, Textures, Indices, ArrayBuffer, NumBuffers = 6 };
+enum Buffer_IDs { ArrayBuffer, NumBuffers = 4 };
 enum Attrib_IDs { vPosition = 0, cPosition = 1, tPosition = 2 };
 GLuint  VAOs[NumVAOs];
 GLuint  Buffers[NumBuffers];
@@ -39,7 +39,7 @@ GLuint texture1;
 vector<vector<GLfloat>> vertices;
 vector<vector<GLfloat>> texture_coords;
 vector<vector<GLfloat>> normals;
-vector<vector<GLfloat>> indices;
+vector<vector<GLuint>> indices;
 //Splits strings into a vector of strings and returns it.
 vector<string> SplitString(const string &s, char delimiter) 
 {
@@ -174,6 +174,7 @@ void ParseObj(ifstream& myFile, string path)
 						//Splits the value of each part of words(x/x/x) by /, giving you three values of v, vt and vn
 						vector<string> faces = SplitString(words[i], '/');
 
+						
 						for (size_t j = 0; j < faces.size(); j++)
 						{
 							vIndices.push_back(stof(faces[0]));
@@ -188,7 +189,7 @@ void ParseObj(ifstream& myFile, string path)
 				else if (words.size() == 5) {
 
 					vector<vector<string>> faceValues;
-					vector<vector<GLfloat>> faceV;
+					vector<vector<GLuint>> faceV;
 					for (size_t i = 1; i < words.size(); i++)
 					{
 						//Splits the value of each part of words(x/x/x) by /, giving you three values of v, vt and vn
@@ -199,22 +200,39 @@ void ParseObj(ifstream& myFile, string path)
 					//Convert each value to a float
 					for(vector<string> x : faceValues)
 					{
-						vector<GLfloat> fv;
+						vector<GLuint> fv;
 						for (size_t i = 0; i < x.size(); i++)
 						{
+							//0 based index
 							
-							fv.push_back(stof(x[i]));
+							fv.push_back(stoul(x[i]) - 1);
 						}
+						//this is the face, indexed to 0 and converted to GLuint
 						faceV.push_back(fv);
 					}
 					//Push the faces in the order: 0,1,2 0,2,3 - Converts polys to tris.
-					indices.push_back(faceV[0]);
-					indices.push_back(faceV[1]);
-					indices.push_back(faceV[2]);
+					vector <GLuint> vertIndex;
+					vector <GLfloat> texIndex;
+					vector <GLfloat> normIndex;
 
-					indices.push_back(faceV[0]);
-					indices.push_back(faceV[2]);
-					indices.push_back(faceV[3]);
+					//Get every vertices point from the face and add it to vertIndex
+					for (size_t i = 0; i < faceV.size(); i++)
+					{
+						vertIndex.push_back(faceV[i][0]);
+						texIndex.push_back(faceV[i][1]);
+						normIndex.push_back(faceV[i][2]);
+					}
+					vector <GLuint> temp;
+					temp.push_back(vertIndex[0]);
+					temp.push_back(vertIndex[1]);
+					temp.push_back(vertIndex[2]);
+					indices.push_back(temp);
+					temp.clear();
+					temp.push_back(vertIndex[0]);
+					temp.push_back(vertIndex[2]);
+					temp.push_back(vertIndex[3]);
+					indices.push_back(temp);
+					temp.clear();
 				}
 				else {
 					cout << "This model loader doesn't support this n-gon. You have " << words.size() << " number of vertexes within this face.";
@@ -364,13 +382,11 @@ void loadTexture(GLuint &texture, std::string texturepath)
 // Displaying models is handled here.
 void Display(GLfloat delta)
 {
-	//Displays a pure white background
-	static const float background[] = { 255.0f, 255.0f, 255.0f, 255.0f };
 	//Displays a pure black background
 	static const float black[] = { 0.0f, 0.0f, 0.f, 0.0f };
 
 	//Sets the clear colour
-	glClearBufferfv(GL_COLOR, 0, background);
+	glClearBufferfv(GL_COLOR, 0, black);
 	//Fills all colours with the above colour
 	glClear(GL_COLOR_BUFFER_BIT);
 	// bind textures on corresponding texture units
@@ -378,20 +394,20 @@ void Display(GLfloat delta)
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 
-	glBindVertexArray(VAOs[Model]);
+	glBindVertexArray(VAOs[Triangles]);
 	//glBindTexture(GL_TEXTURE_2D, texture1);
-	glDrawElements(GL_TRIANGLES, vertices.size() * sizeof(vector<GLfloat>), GL_UNSIGNED_INT, 0);
-
+	glDrawElements(GL_TRIANGLES, indices.size() , GL_UNSIGNED_INT, 0);
 }
 void init(void) {
 
+
 	glGenVertexArrays(NumVAOs, VAOs);
-	glBindVertexArray(VAOs[Model]);
+	glBindVertexArray(VAOs[Triangles]);
 
 	ShaderInfo  shaders[] =
 	{
-		{ GL_VERTEX_SHADER, "C:/Users/jflet/Documents/GitHub/Model_Loader/Model_Loader/Media/Triangles/triangles.vert" },
-		{ GL_FRAGMENT_SHADER, "C:/Users/jflet/Documents/GitHub/Model_Loader/Model_Loader/Media/Triangles/triangles.frag" },
+		{ GL_VERTEX_SHADER, "Media/Triangles/triangles.vert" },
+		{ GL_FRAGMENT_SHADER, "Media/Triangles/triangles.frag" },
 		{ GL_NONE, NULL }
 	};
 
@@ -405,32 +421,32 @@ void init(void) {
 
 
 	glGenBuffers(NumBuffers, Buffers);
-	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Model]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>), &indices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Triangles]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>) * vertices.size(), &vertices[0][0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[Indices]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vector<GLfloat>), &indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vector<GLuint>) * indices.size(), &indices[0][0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
-	////Texture Binding
-	//glBindBuffer(GL_ARRAY_BUFFER, Buffers[Tex]);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coords), texture_coords, GL_STATIC_DRAW);
-	//glVertexAttribPointer(tPosition, 2, GL_FLOAT,
-	//	GL_FALSE, 0, BUFFER_OFFSET(0));
+	//Texture Binding
+	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Tex]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>) * texture_coords.size(), &texture_coords, GL_STATIC_DRAW);
+	glVertexAttribPointer(tPosition, 2, GL_FLOAT,
+		GL_FALSE, 0, BUFFER_OFFSET(0));
 
 	// creating the model matrix
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
 	model = glm::rotate(model, glm::radians(-40.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -1.0f));
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
 
 	// creating the view matrix
 	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -2.0f));
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
 
 	// creating the projection matrix
-	glm::mat4 projection = glm::perspective(45.0f, 4.0f / 3, 0.1f, 20.0f);
+	glm::mat4 projection = glm::perspective(45.0f, 4.0f / 3, 0.1f, 0.0f);
 
 	// Adding all matrices up to create combined matrix
 	glm::mat4 mvp = projection * view * model;
