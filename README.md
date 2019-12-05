@@ -47,7 +47,11 @@ String path - the path of the object to load
 
 Read through an obj file line by line and checks for the first word of each line. 
 Depending on what the word is, it'll split the following values and add them to a vector. 
-
+For example,
+if the first word is V, we know the following values are the vertices of the model
+using SplitString, we split the line into a string vector and ignore the first value since it's the firstWord, i.e V
+The following values are then converted to floats and added to a GLfloat vector.
+This is then added to a vector of GLfloat vectors vertices.
 ## ParseDAE
 Not implemented yet
 ## OpenFile
@@ -58,6 +62,7 @@ String path - The path of the object to load
 Takes in a path as a console input and splits it at the last .
 Everything after and including the dot is taken as a file extension
 Which is then used to decide which method to run, I.E if the file extension is OBJ, it runs ParseOBJ.
+If this fails to open a file, it asks for further user input.
 
 ## loadTexture
 Parameters: GLuint &texture, string texturepath
