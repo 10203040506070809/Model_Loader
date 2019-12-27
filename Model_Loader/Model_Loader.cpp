@@ -1,29 +1,9 @@
 // Model_Loader.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include "pch.h"
-#include <iostream>
-#include "GL/glew.h"
-#include "GL/freeglut.h"
-#include "GLFW/glfw3.h"
-#include "LoadShaders.h"
-#include <glm/glm.hpp> //includes GLM
-#include <glm/ext/matrix_transform.hpp> // GLM: translate, rotate
-#include <glm/ext/matrix_clip_space.hpp> // GLM: perspective and ortho 
-#include <glm/gtc/type_ptr.hpp> // GLM: access to the value_ptr
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "Model_Loader.h"
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-
-using namespace std;
-using namespace glm;
-
-//TODO Remove these from global
+//TODO Remove these from global REMINDER: THESE ARE NOT CLEARED WHENEVER A NEW MODEL IS LOADED. THIS NEEDS TO CHANGE
 ///Vertex Array Objects are objects which contain one or more vertex buffer objects and is designed to store the
 ///information for a complete rendered object
 enum VAO_IDs { Triangles, Indices, Colours, Tex, NumVAOs = 1 };
@@ -56,8 +36,11 @@ void LoadObj()
 {
 
 }
-void ParseObj(ifstream& myFile, string path)
+void ParseObj(string path)
 {
+	//vertices, texture_coords, normals, indices.size = 0;
+	ifstream myFile;
+	myFile.open(path);
 	string line;
 	//myFile.open(path);
 	if (myFile.is_open())
@@ -277,7 +260,7 @@ void ParseDAE(ifstream& myFile)
 }
 
 //Opens a file by calling the relevant method, based on file extension. //TODO  DAE support
-void OpenFile(string path)
+void OpenModel(string path)
 {
 	if (path == "debug") {
 		path = "Media/Models/Creeper.obj";
@@ -287,16 +270,16 @@ void OpenFile(string path)
 	myFile.open(path);
 	if (myFile.fail())
 	{
-		cout << "\n File not found, try again:";
+		MessageBox(NULL, "An error occured.", "Error", MB_OK);
 		cin >> path;
-		OpenFile(path);
+		OpenModel(path);
 	}
 	//Get everything after the last . which should give the filetype
 	string fileType = path.substr(path.find_last_of(".") + 1);
 	//If input is an obj file, call this method
 	if (fileType == "obj")
 	{
-		ParseObj(myFile, path);
+		ParseObj(path);
 	}
 	//Else if input is a dae file, call this method
 	else if (fileType == "dae")
@@ -305,11 +288,9 @@ void OpenFile(string path)
 	}
 	else
 	{
-		cout << "File format unknown.";
-		cout << "Paste the path to your model here, including the name. \n  Type 'debug' to open a default file. \n";
-		cin >> path;
-		OpenFile(path);
+		MessageBox(NULL, "File format unknown.", "Error", MB_OK);
 	}
+	myFile.close();
 }
 
 
@@ -353,30 +334,30 @@ void loadTexture(GLuint &texture, std::string texturepath)
 	// load and create a texture 
 // -------------------------
 
-// texture 1
-// ---------
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	// set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// load image, create texture and generate mipmaps
-	GLint width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-	unsigned char* data = stbi_load(texturepath.c_str(), &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
+//// texture 1
+//// ---------
+//	glGenTextures(1, &texture);
+//	glBindTexture(GL_TEXTURE_2D, texture);
+//	// set the texture wrapping parameters
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//	// set texture filtering parameters
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//	// load image, create texture and generate mipmaps
+//	GLint width, height, nrChannels;
+//	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+//	unsigned char* data = stbi_load(texturepath.c_str(), &width, &height, &nrChannels, 0);
+//	if (data)
+//	{
+//		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+//		glGenerateMipmap(GL_TEXTURE_2D);
+//	}
+//	else
+//	{
+//		std::cout << "Failed to load texture" << std::endl;
+//	}
+//	stbi_image_free(data);
 }
 
 // Displaying models is handled here.
@@ -389,82 +370,82 @@ void Display(GLfloat delta)
 	glClearBufferfv(GL_COLOR, 0, black);
 	//Fills all colours with the above colour
 	glClear(GL_COLOR_BUFFER_BIT);
-	// bind textures on corresponding texture units
-	glFrontFace(GL_CW);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
+	//// bind textures on corresponding texture units
+	//glFrontFace(GL_CW);
+	//glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
 
-	glBindVertexArray(VAOs[Triangles]);
-	//glBindTexture(GL_TEXTURE_2D, texture1);
-	glDrawElements(GL_TRIANGLES, indices.size() , GL_UNSIGNED_INT, 0);
+	//glBindVertexArray(VAOs[Triangles]);
+	////glBindTexture(GL_TEXTURE_2D, texture1);
+	//glDrawElements(GL_TRIANGLES, indices.size() , GL_UNSIGNED_INT, 0);
 }
 void init(void) {
 
 
-	glGenVertexArrays(NumVAOs, VAOs);
-	glBindVertexArray(VAOs[Triangles]);
+	//glGenVertexArrays(NumVAOs, VAOs);
+	//glBindVertexArray(VAOs[Triangles]);
 
-	ShaderInfo  shaders[] =
-	{
-		{ GL_VERTEX_SHADER, "Media/Triangles/triangles.vert" },
-		{ GL_FRAGMENT_SHADER, "Media/Triangles/triangles.frag" },
-		{ GL_NONE, NULL }
-	};
+	//ShaderInfo  shaders[] =
+	//{
+	//	{ GL_VERTEX_SHADER, "Media/Triangles/triangles.vert" },
+	//	{ GL_FRAGMENT_SHADER, "Media/Triangles/triangles.frag" },
+	//	{ GL_NONE, NULL }
+	//};
 
-	GLuint shader;
-	shader = LoadShaders(shaders);
-	//Sets the given object as the shader program to use.
-	//Parameters:
-	//GLuint Program - The shader program to use.
-	glUseProgram(shader);
+	//GLuint shader;
+	//shader = LoadShaders(shaders);
+	////Sets the given object as the shader program to use.
+	////Parameters:
+	////GLuint Program - The shader program to use.
+	//glUseProgram(shader);
 
 
 
-	glGenBuffers(NumBuffers, Buffers);
-	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Triangles]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>) * vertices.size(), &vertices[0][0], GL_STATIC_DRAW);
+	//glGenBuffers(NumBuffers, Buffers);
+	//glBindBuffer(GL_ARRAY_BUFFER, Buffers[Triangles]);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>) * vertices.size(), &vertices[0][0], GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[Indices]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vector<GLuint>) * indices.size(), &indices[0][0], GL_STATIC_DRAW);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[Indices]);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vector<GLuint>) * indices.size(), &indices[0][0], GL_STATIC_DRAW);
 
-	glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+	//glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
-	//Texture Binding
-	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Tex]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>) * texture_coords.size(), &texture_coords, GL_STATIC_DRAW);
-	glVertexAttribPointer(tPosition, 2, GL_FLOAT,
-		GL_FALSE, 0, BUFFER_OFFSET(0));
+	////Texture Binding
+	//glBindBuffer(GL_ARRAY_BUFFER, Buffers[Tex]);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>) * texture_coords.size(), &texture_coords, GL_STATIC_DRAW);
+	//glVertexAttribPointer(tPosition, 2, GL_FLOAT,
+	//	GL_FALSE, 0, BUFFER_OFFSET(0));
 
-	// creating the model matrix
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
-	model = glm::rotate(model, glm::radians(-40.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
+	//// creating the model matrix
+	//glm::mat4 model = glm::mat4(1.0f);
+	//model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
+	//model = glm::rotate(model, glm::radians(-40.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	//model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
 
-	// creating the view matrix
-	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
+	//// creating the view matrix
+	//glm::mat4 view = glm::mat4(1.0f);
+	//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
 
-	// creating the projection matrix
-	glm::mat4 projection = glm::perspective(45.0f, 4.0f / 3, 0.1f, 0.0f);
+	//// creating the projection matrix
+	//glm::mat4 projection = glm::perspective(45.0f, 4.0f / 3, 0.1f, 0.0f);
 
-	// Adding all matrices up to create combined matrix
-	glm::mat4 mvp = projection * view * model;
+	//// Adding all matrices up to create combined matrix
+	//glm::mat4 mvp = projection * view * model;
 
-	//adding the Uniform to the shader
-	int mvpLoc = glGetUniformLocation(shader, "mvp");
-	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+	////adding the Uniform to the shader
+	//int mvpLoc = glGetUniformLocation(shader, "mvp");
+	//glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 
-	glEnableVertexAttribArray(vPosition);
-	glEnableVertexAttribArray(cPosition);
-	glEnableVertexAttribArray(tPosition);
+	//glEnableVertexAttribArray(vPosition);
+	//glEnableVertexAttribArray(cPosition);
+	//glEnableVertexAttribArray(tPosition);
 }
 //Initialises GLFW and opens the GLFW window. Sets the callback for user input.
-void GLFWInit() {
+GLFWwindow* GLFWInit() {
 		//Initialises glfw
 		glfwInit();
 		//Creates a window of a determined size with a title
-		GLFWwindow* window = glfwCreateWindow(800, 600, "Scene View", NULL, NULL);
+		GLFWwindow* window = glfwCreateWindow(1200, 800, "Scene View", NULL, NULL);
 		//Make the window the currently highlighted window
 		glfwMakeContextCurrent(window);
 		//Initialises glew
@@ -473,37 +454,10 @@ void GLFWInit() {
 		//Sets the window that receives key callback and the method that is called
 		glfwSetKeyCallback(window, checkForInput);
 
-		//While the window is open, repeat these functions
-		GLfloat timer = 0.0f;
-		while (!glfwWindowShouldClose(window))
-		{			
-			// uncomment to draw only wireframe 
-			// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-			Display(timer);
-			glfwSwapBuffers(window);
-			glfwPollEvents();		
-			timer += 0.1f;
-		}
-		//Otherwise close the window
-		glfwDestroyWindow(window);
-		glfwTerminate();
+		return window;
 }
 
-//Main function
-int main(int argc, char** argv)
-{
-	string path;
-	cout << "Paste the path to your model here, including the name. \n  Type 'debug' to open a default file. \n";
-	cin >> path;
-
-	//Calls the OpenFile method
-	OpenFile(path);
-
-	//Initialises GLFW once the file is opened.
-	GLFWInit();
-	
-}
 
 
 
