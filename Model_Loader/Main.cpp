@@ -15,7 +15,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
 	//Initialises GLFW once the file is opened.
 	GLFWwindow* window = GLFWInit();
 	HWND hWnd = glfwGetWin32Window(window);
-	SetWindowLongA(hWnd, GWL_STYLE, WS_BORDER);
+	//SetWindowLongA(hWnd, GWL_STYLE, WS_BORDER);
 
 	SetParent(hWnd, ParentWindow);
 	UpdateWindow(hWnd);
