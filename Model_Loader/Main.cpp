@@ -1,50 +1,48 @@
 #include "GUI.h"
-#include "Model_Loader.h"
-
-int MainLoop(GLFWwindow*);
+#include <GLFW/glfw3native.h>
+int MainLoop(HWND ParentWindow, GLFWwindow*);
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdshow)
 {
-
-	//Calls the OpenFile method
-
 
 	HWND ParentWindow = GUIinit(hInst, hPrevInst, args, ncmdshow);
 
 	
 	//Initialises GLFW once the file is opened.
 	GLFWwindow* window = GLFWInit();
-	HWND hWnd = glfwGetWin32Window(window);
+	HWND OpenGLWindow = glfwGetWin32Window(window);
+	SetParent(OpenGLWindow, ParentWindow);
 	//SetWindowLongA(hWnd, GWL_STYLE, WS_BORDER);
-
-	SetParent(hWnd, ParentWindow);
-	UpdateWindow(hWnd);
-	MainLoop(window);
+	//SetWindowLong(hWnd, GWL_STYLE, WS_BORDER | WS_THICKFRAME);
+	ShowWindow(OpenGLWindow, SW_SHOWMAXIMIZED);
+	UpdateWindow(OpenGLWindow);
+	MainLoop(ParentWindow, window);
 }
 
 
 //Main program loop
-int MainLoop(GLFWwindow* window) 
-
+int MainLoop(HWND ParentWindow, GLFWwindow* openglWindow) 
 {
 	MSG msg = { 0 };
 	GLfloat timer = 0.0f;
-	while (GetMessage(&msg, NULL, NULL, NULL) || (!glfwWindowShouldClose(window)))
+	while (GetMessage(&msg, NULL, NULL, NULL) || (!glfwWindowShouldClose(openglWindow)))
 	{
 		//=======GUI Functions==========
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 
-
 		//=======openGL functions=======
-		Display(timer);
-		glfwSwapBuffers(window);
+		Display();
+		glfwSwapBuffers(openglWindow);
 		glfwPollEvents();
-		timer += 0.1f;
+	
+
+	
 	}
 
-	//Otherwise close the window
-	glfwDestroyWindow(window);
+	//Otherwise close the opengl window
+	glfwDestroyWindow(openglWindow);
 	glfwTerminate();
+	DestroyWindow(ParentWindow);
 	return 0;
 }

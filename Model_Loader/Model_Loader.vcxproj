@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -23,21 +23,21 @@
     <ProjectGuid>{41476E6F-73D4-4C0D-9055-0A2BC8A2043A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ModelLoader</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -50,7 +50,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -73,21 +73,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)Model_Loader\Libraries\glm;$(SolutionDir)Model_Loader\Libraries\LoadShaders;$(IncludePath)</IncludePath>
+    <IncludePath>H:\Documents\GitHub\Model_Loader\Model_Loader\x64;$(SolutionDir)Model_Loader\Libraries\glm;$(SolutionDir)Model_Loader\Libraries\LoadShaders;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)Model_Loader\Libraries\glm;$(SolutionDir)Model_Loader\Libraries\LoadShaders;$(IncludePath)</IncludePath>
+    <IncludePath>H:\Documents\GitHub\Model_Loader\Model_Loader\x64;$(SolutionDir)Model_Loader\Libraries\glm;$(SolutionDir)Model_Loader\Libraries\LoadShaders;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)Model_Loader\Libraries\glm;$(SolutionDir)Model_Loader\Libraries\LoadShaders;$(IncludePath)</IncludePath>
+    <IncludePath>H:\Documents\GitHub\Model_Loader\Model_Loader\x64;$(SolutionDir)Model_Loader\Libraries\glm;$(SolutionDir)Model_Loader\Libraries\LoadShaders;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries\glm;C:\Users\jflet\Documents\GitHub\Model_Loader\Model_Loader\Libraries;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)Model_Loader\Libraries\glm;$(SolutionDir)Model_Loader\Libraries\LoadShaders;$(IncludePath)</IncludePath>
+    <IncludePath>H:\Documents\GitHub\Model_Loader\Model_Loader\x64;$(SolutionDir)Model_Loader\Libraries\glm;$(SolutionDir)Model_Loader\Libraries\LoadShaders;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -100,8 +100,9 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -117,6 +118,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -132,10 +134,11 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -151,30 +154,28 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Utilities.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="Libraries\LoadShaders\LoadShaders.h" />
     <ClInclude Include="Model_Loader.h" />
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="Obj_Loader.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Libraries\LoadShaders\LoadShaders.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model_Loader.cpp" />
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Obj_Loader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Media\Triangles\triangles.frag" />
