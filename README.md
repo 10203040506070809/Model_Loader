@@ -187,3 +187,6 @@ Originally, I had planned to use Librocket to give me some easily implementable 
 
 In conclusion, while this program is not likely to be useful in any real world situation, it provided keen insight into my weaknesses within C++ and OpenGL while allowing me to further my understanding of both languages.
 
+Youtube walkthrough:
+
+https://youtu.be/kh9hThXslf4
