@@ -3,11 +3,20 @@
 Mesh ParseObj(string path)
 {
 	Mesh mesh;
+
+	vector<vec3> out_vertices;
+	vector<vec2> out_texture_coords;
+	vector<vec3> out_faces;
+	vector<vec3> out_normals;
+
+
 	vector<vec3> temp_vertices;
-	vector<vec2> temp_uvs;
+	vector<vec2> temp_textures;
+	vector<vec3> temp_faces;
 	vector<vec3> temp_normals;
 
-	vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+
+	vector<unsigned int> vertexIndices, texIndices, normalIndices;
 
 	//vertices, texture_coords, normals, indices.size = 0;
 	ifstream myFile;
@@ -30,25 +39,7 @@ Mesh ParseObj(string path)
 			//Geometric vertices of models start with V in OBJ files - If the line starts with V, we know the following three values are vertex positions
 			else if (firstWord == "v")
 			{
-
-				//========original implementation=========
-
-				//vector<GLfloat> vertex;
-				//vector<string> words = SplitString(line, ' ');
-				////Can ignore the first point since it's v
-				////string 1 is the first data point
-				////string 2 is the second data point
-				////string 3 is the third data point
-				////Make vertex vector
-				////Adds the three float values to a vector, e.g in the creeper.obj, the first vertex is 0.5, -0.5, -0.5. 
-				////x = 0.5, y = - 0.5 z = -0.5
-				////It would push back 0.5, then -0.5, then -0.5.
-				//vertex.push_back(stof(words[1]));
-				//vertex.push_back(stof(words[2]));
-				//vertex.push_back(stof(words[3]));
-				////This is then added to a vector
-				//vertices.push_back(vertex);		
-
+				
 				//==========new implementation======
 
 				vec3 vertex;
@@ -65,49 +56,20 @@ Mesh ParseObj(string path)
 			else if (firstWord == "vt")
 			{
 
-				//=======original implementation=========
-
-			   //vector<GLfloat> texture;
-
-			   //vector<string> words = SplitString(line, ' ');
-			   ////Can ignore the first point since it's v
-			   ////string 1(i=0) is the first point
-			   ////string 2(i=1) is the second point
-			   ////string 3(i=2) is the third point
-			   //texture.push_back(stof(words[1]));
-			   //texture.push_back(stof(words[2]));
-			   ////Make texture vector
-
-			   //texture_coords.push_back(texture);
-
 			   //======new implementation======
 
-				vec2 uv;
+				vec2 tex;
 
 				vector<string> words = SplitString(line, ' ');
-				uv.x = stof(words[1]);
-				uv.y = stof(words[2]);
+				tex.x = stof(words[1]);
+				tex.y = stof(words[2]);
 
-				temp_uvs.push_back(uv);
+				temp_textures.push_back(tex);
 
 			}
 			//Vertex normals - If the line starts with vn, we know the following three values are normals for each vertex
 			else if (firstWord == "vn")
 			{
-				//=======original implementation======
-
-				//vector<GLfloat> normal;
-				//vector<string> words = SplitString(line, ' ');
-				////Can ignore the first point since it's vn
-				////string 1 is the first point
-				////string 2 is the second point
-				////string 3 is the third point
-				////Make vertex vector
-				//normal.push_back(stof(words[1]));
-				//normal.push_back(stof(words[2]));
-				//normal.push_back(stof(words[3]));
-				////Make normal vector
-				//normals.push_back(normal);
 
 				//======new implementation========
 
@@ -158,125 +120,127 @@ Mesh ParseObj(string path)
 				//If there's a quad there should be 4 elements, however as the firstWord 'f' hasn't been omitted, there will be 5 for a quad.
 				vector<string> words = SplitString(line, ' ');
 
-				//=======old implementation========
+				//======new implementation==============
+				if (words.size() == 4)
+				{
+					unsigned int vertexIndex[3], texIndex[3], normalIndex[3];
+					vector<string> faces;
+					for (size_t i = 1; i < words.size(); i++)
+					{
+						//Splits the value of each part of words(x/x/x) by /, giving you three values of v, vt and vn
+						faces = SplitString(words[i], '/');
+						vertexIndex[i-1] = stoul(faces[0]);
+						texIndex[i-1] = stoul(faces[1]);
+						normalIndex[i-1] = stoul(faces[2]);
+					}
 
-				//if obj uses tris and has three face vectors. //TODO
-				//if (words.size() == 4) {
-				//	
-				//	vector<GLfloat> vIndices;
-				//	vector<GLuint> tIndices;
-				//	vector<GLfloat> nIndices;
+					vertexIndices.push_back(vertexIndex[0]);
+					vertexIndices.push_back(vertexIndex[1]);
+					vertexIndices.push_back(vertexIndex[2]);
+					texIndices.push_back(texIndex[0]);
+					texIndices.push_back(texIndex[1]);
+					texIndices.push_back(texIndex[2]);
+					normalIndices.push_back(normalIndex[0]);
+					normalIndices.push_back(normalIndex[1]);
+					normalIndices.push_back(normalIndex[2]);
+				}
 
-				//	for (size_t i = 1; i < words.size(); i++)
-				//	{
-				//		//Splits the value of each part of words(x/x/x) by /, giving you three values of v, vt and vn
-				//		vector<string> faces = SplitString(words[i], '/');
-
-				//		
-				//		for (size_t j = 0; j < faces.size(); j++)
-				//		{
-				//			vIndices.push_back(stof(faces[0]));
-				//			tIndices.push_back(stoul(faces[1]));
-				//			nIndices.push_back(stof(faces[2]));
-				//		}
-
-				//	}
-
-				//}
-				////If obj uses quads
-				//else if (words.size() == 5) {
-
-				//	vector<vector<string>> faceValues;
-				//	vector<vector<GLuint>> faceV;
-				//	for (size_t i = 1; i < words.size(); i++)
-				//	{
-				//		//Splits the value of each part of words(x/x/x) by /, giving you three values of v, vt and vn
-				//		vector<string> faces = SplitString(words[i], '/');
-				//		//After the line has been read, this should have vectors of all faces
-				//		faceValues.push_back(faces);
-				//	}
-				//	//Convert each value to a float
-				//	for(vector<string> x : faceValues)
-				//	{
-				//		vector<GLuint> fv;
-				//		for (size_t i = 0; i < x.size(); i++)
-				//		{
-				//			//0 based index
-				//			
-				//			fv.push_back(stoul(x[i]) - 1);
-				//		}
-				//		//this is the face, indexed to 0 and converted to GLuint
-				//		faceV.push_back(fv);
-				//	}
-				//	//Push the faces in the order: 0,1,2 0,2,3 - Converts polys to tris.
-				//	vector <GLuint> vertIndex;
-				//	vector <GLfloat> texIndex;
-				//	vector <GLfloat> normIndex;
-
-				//	//Get every vertices point from the face and add it to vertIndex
-				//	for (size_t i = 0; i < faceV.size(); i++)
-				//	{
-				//		vertIndex.push_back(faceV[i][0]);
-				//		texIndex.push_back(faceV[i][1]);
-				//		normIndex.push_back(faceV[i][2]);
-				//	}
-				//	vector <GLuint> temp;
-				//	temp.push_back(vertIndex[0]);
-				//	temp.push_back(vertIndex[1]);
-				//	temp.push_back(vertIndex[2]);
-				//	indices.push_back(temp);
-				//	temp.clear();
-				//	temp.push_back(vertIndex[0]);
-				//	temp.push_back(vertIndex[2]);
-				//	temp.push_back(vertIndex[3]);
-				//	indices.push_back(temp);
-				//	temp.clear();
-				//}
-				//else {
-				//	cout << "This model loader doesn't support this n-gon. You have " << words.size() << " number of vertexes within this face.";
-				//	break;
-				//} 
 
 				//========new implementation========
+				else if(words.size() == 5)
+				{
+					unsigned int vertexIndex[4], texIndex[4], normalIndex[4];
+					vector<string> faces;
+					for (size_t i = 1; i < words.size(); i++)
+					{
+						//Splits the value of each part of words(x/x/x) by /, giving you three values of v, vt and vn
+						faces = SplitString(words[i], '/');
+						//0 based indexing whereas i starts at 1 because of the f at the beginning of words
+						vertexIndex[i - 1] = stoul(faces[0]);
+						texIndex[i - 1] = stoul(faces[1]);
+						normalIndex[i - 1] = stoul(faces[2]);
+					}
 
+					//First 'face' of 012 then second of 023
+					vertexIndices.push_back(vertexIndex[0]);
+					vertexIndices.push_back(vertexIndex[1]);
+					vertexIndices.push_back(vertexIndex[2]);
+					vertexIndices.push_back(vertexIndex[0]);
+					vertexIndices.push_back(vertexIndex[2]);
+					vertexIndices.push_back(vertexIndex[3]);
+					texIndices.push_back(texIndex[0]);
+					texIndices.push_back(texIndex[1]);
+					texIndices.push_back(texIndex[2]);
+					texIndices.push_back(texIndex[0]);
+					texIndices.push_back(texIndex[2]);
+					texIndices.push_back(texIndex[3]);
+					normalIndices.push_back(normalIndex[0]);
+					normalIndices.push_back(normalIndex[1]);
+					normalIndices.push_back(normalIndex[2]);
+					normalIndices.push_back(normalIndex[0]);
+					normalIndices.push_back(normalIndex[2]);
+					normalIndices.push_back(normalIndex[3]);
+				}
 			}
 			//If the first word is mtllib, we know the part after this is the material library.
 			else if (firstWord == "mtllib")
 			{
-				//========old implementation========
 
 				//Splits the string at each whitespaces
-				//vector<string> words = SplitString(line, ' ');
-				////Gets the second element in the vector
-				//string textureName = words[1];	
-				//string texPath = path.substr(0, path.find_last_of("/")) + "/" + textureName;
-				//
-				//ifstream texFile(texPath, std::ios::binary);
+				vector<string> words = SplitString(line, ' ');
+				//Gets the second element in the vector
+				string textureName = words[1];	
+				string test = path;
+				string texPath = path.substr(0, path.find_last_of("\\")) + "/" + textureName;
+				
+				ifstream texFile;
+				texFile.open(texPath);
+				if (texFile.is_open()) 
+				{
+					while (!texFile.eof()) 
+					{
+						getline(texFile, line);
+						if (line.substr(0, line.find(" ")) == "map_Kd") {
+							vector<string> words = SplitString(line, ' ');
+							//Got the name of the texture within the address of the model
+							string texName = words[1];
+							mesh.texturePath = texName;
+						}
+					}
+					
+				}
 
-				//if (texFile.is_open()) 
-				//{
-				//	while (!texFile.eof()) 
-				//	{
-				//		getline(texFile, line);
-				//		if (line.substr(0, line.find(" ")) == "map_Kd") {
-				//			vector<string> words = SplitString(line, ' ');
-				//			//Got the name of the texture within the address of the model
-				//			string texName = words[1];
-				//		}
-				//	}
-				//	
-				//}
-
-				//========new implementation========
-
+				texFile.close();
 			}
 		}
-		mesh.vertices = temp_vertices;
-		mesh.uvs = temp_uvs;
-		mesh.normals = temp_normals;
+		// For each vertex of each triangle
+		for (unsigned int i = 0; i < vertexIndices.size(); i++) {
+
+			// Get the indices of its attributes
+			unsigned int vertexIndex = vertexIndices[i];
+			unsigned int texIndex = texIndices[i];
+			unsigned int normalIndex = normalIndices[i];
+
+			// Get the attributes thanks to the index
+			glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+			glm::vec2 tex = temp_textures[texIndex - 1];
+			glm::vec3 normal = temp_normals[normalIndex - 1];
+		
+			// Put the attributes in buffers
+			out_vertices.push_back(vertex);
+			out_texture_coords.push_back(tex);
+			out_normals.push_back(normal);
+
+		}
+
+		mesh.vertices = out_vertices;
+		mesh.texture_coords = out_texture_coords;
+		mesh.normals = out_normals;
 		myFile.close();
 
 		return mesh;
 	}
+
 }
+
 

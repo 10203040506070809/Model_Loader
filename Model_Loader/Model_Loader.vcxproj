@@ -162,6 +162,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Controls.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="Libraries\LoadShaders\LoadShaders.h" />
@@ -170,6 +171,7 @@
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Controls.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Libraries\LoadShaders\LoadShaders.cpp" />

@@ -1,6 +1,7 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include "Model_Loader.h"
-
 //TODO Remove these from global REMINDER: THESE ARE NOT CLEARED WHENEVER A NEW MODEL IS LOADED. THIS NEEDS TO CHANGE
 ///Vertex Array Objects are objects which contain one or more vertex buffer objects and is designed to store the
 ///information for a complete rendered object
@@ -12,7 +13,23 @@
 //GLuint  Buffers[NumBuffers];
 //GLuint texture1;
 
+vector<Mesh> objectsToRender;
+mat4 model;
+mat4 view;
+mat4 projection;
+GLuint shader;
+GLfloat scrollDistance = -300;
+GLfloat posX = 0;
+GLfloat posY = 0;
+Colour col = RGBtoFloat(224, 224, 224, 255);
+vec3 modelScale = { 1.0f, 1.0f, 1.0f };
+GLfloat rotSpeed = 1;
+GLfloat rot = 0;
+vec3 rotDir = { 1.0f,1.0f,1.0f };
+//vec3 
 #define BUFFER_OFFSET(a) ((void*)(a))
+
+void ShowFPS();
 
 //Parses a DAE file //TODO
 void ParseDAE(ifstream& myFile)
@@ -37,8 +54,7 @@ void OpenModel(string path)
 	myFile.open(path);
 	if (myFile.fail())
 	{
-		MessageBox(NULL, "An error occured.", "Error", MB_OK);
-		cin >> path;
+		MessageBox(NULL, "An error occured while trying to load the file.", "Error", MB_OK);
 		OpenModel(path);
 	}
 	//Get everything after the last . which should give the filetype
@@ -48,7 +64,9 @@ void OpenModel(string path)
 	if (fileType == "obj")
 	{
 		Mesh mesh = ParseObj(path);
-		mesh.DrawMesh(mesh.vertices,mesh.uvs,mesh.normals);
+		mesh.SetupMesh(mesh.vertices, mesh.texture_coords, mesh.normals, mesh.faces, shader);
+		objectsToRender.push_back(mesh);
+	
 	}
 	//Else if input is a dae file, call this method
 	else if (fileType == "dae")
@@ -75,94 +93,154 @@ void OpenModel(string path)
 
 
 //Checks for user input, like quitting and moving inside the scene.
-void checkForInput(GLFWwindow *window, int key, int scancode, int action, int mods) {
+void CheckForKeyboardInput(GLFWwindow *window, int key, int scancode, int action, int mods) {
 	///87 = w
 	///68 = d 
 	///83 = s
 	///65 = a
+	///Use GLFW_PRESS to capture a single event
+	switch (key) {
 
-
-	///If key = q
-	if (key == 81) {
+	case GLFW_KEY_W:
+		//if (action == GLFW_PRESS)
+			scrollDistance += 1;
+		break;
+	case GLFW_KEY_D:
+		posX += 1;
+		break;
+	case GLFW_KEY_S:
+			scrollDistance -= 1;
+		break;
+	case GLFW_KEY_A:
+		posX -= 1;
+		break;
+	case GLFW_KEY_Q:
 		exit(0);
-	}
-	///If W is pressed - Move the camera forward
-	else  if (key == 87) {
+		break;
 
-	}
-	///If D is pressed - Move the camera right
-	else if (key == 68) {
+	case GLFW_KEY_SPACE:
+			posY += 1;
+			break;
+	case GLFW_KEY_BACKSPACE:
+		posY -= 1;
+		break;
+	case GLFW_KEY_1:
+		modelScale = { 1.0f, 1.0f, 1.0f };
+		break;
+	case GLFW_KEY_2:
+		modelScale = { 2.0f, 2.0f, 2.0f };
+		break;
+	case GLFW_KEY_3:
+		modelScale = { 3.0f, 3.0f, 3.0f };
+		break;
+	case GLFW_KEY_4:
+		modelScale = { 4.0f, 4.0f, 4.0f };
+		break;
+	case GLFW_KEY_UP:
 
-	}
-	///If S is pressed - Move the camera back
-	else if (key == 83) {
+		rotDir.x = 1;
+		rotDir.y = 0;
 
-	}
-	///If A is pressed - Move the camera left
-	else if (key == 65) {
+		rot = rot + (rotSpeed * -5);
+		break;
+	case GLFW_KEY_DOWN:
+		rotDir.x = 1;
+		rotDir.y = 0;
+		rot = rot + (rotSpeed * 5);
 
-	}
-	///Debug method used to check what keycode input is
-	else {
-		
+		break;
+	case GLFW_KEY_LEFT:
+		rotDir.y = 1;
+		rotDir.x = 0;
+
+		rot = rot + (rotSpeed * -5);
+		break;
+	case GLFW_KEY_RIGHT:
+		rotDir.y = 1;
+		rotDir.x = 0;
+		rot = rot + (rotSpeed * 5);
+
+		break;
+	default:
+
+		break;
 	}
 }
 
-//Loads a texture
-void loadTexture(GLuint &texture, std::string texturepath)
+void CheckForMouseInput(GLFWwindow *window, int button, int action, int mods) 
 {
-	// load and create a texture 
-// -------------------------
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		
+		
+	}
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) 
+	{
+	
+	}
 
-//// texture 1
-//// ---------
-//	glGenTextures(1, &texture);
-//	glBindTexture(GL_TEXTURE_2D, texture);
-//	// set the texture wrapping parameters
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//	// set texture filtering parameters
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//	// load image, create texture and generate mipmaps
-//	GLint width, height, nrChannels;
-//	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-//	unsigned char* data = stbi_load(texturepath.c_str(), &width, &height, &nrChannels, 0);
-//	if (data)
-//	{
-//		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-//		glGenerateMipmap(GL_TEXTURE_2D);
-//	}
-//	else
-//	{
-//		std::cout << "Failed to load texture" << std::endl;
-//	}
-//	stbi_image_free(data);
+	if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_REPEAT)
+	{
+
+	}
+}
+
+void CheckForMouseWheel(GLFWwindow* window, double xOffset, double yOffset)
+{
+	if (yOffset > 0)
+		scrollDistance += 5;
+	else 
+		scrollDistance -= 5;
 }
 
 // Displaying models is handled here.
-void Display()
+void Display(GLfloat delta)
 {
-	Colour col = RGBtoFloat(185, 60, 60, 255);
-	static const float background[4] = { col.r, col.g, col.b, col.a };
-	//Sets the clear colour - Requires the colour as a value between 0 and 1 as a float, RGBtoFloat is used to simplify that process
-	//glClearBufferfv(GL_COLOR, 0, background);
-	//Clears all colour
-	//glClear(GL_COLOR_BUFFER_BIT);
-	//// bind textures on corresponding texture units
+	
+	 float background[4] = { col.r, col.g, col.b, col.a };
+	//Sets the background colour - Requires the colour as a value between 0 and 1 as a float, RGBtoFloat is used to simplify that process
+	glClearBufferfv(GL_COLOR, 0, background);
+
 	glFrontFace(GL_CW);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
 
-	//glBindVertexArray(VAOs[Triangles]);
-	////glBindTexture(GL_TEXTURE_2D, texture1);
-	//glDrawElements(GL_TRIANGLES, indices.size() , GL_UNSIGNED_INT, 0);
+	int counter = 0;
+	//draw all meshes in scene
+	for (Mesh x : objectsToRender)
+	{
+		glPushMatrix();
+		x.DrawMesh(x.vertices,x.texture_coords,x.normals, x.faces, counter);
+		glMatrixMode(GL_MODELVIEW);
+		glTranslatef(1.0f, 0.0f, 0.0f);
+		
+		counter++;
+		glPopMatrix();
+	}
+
+	// creating the model matrix - Note to self: opengl camera doesn't move, the world moves around it
+
+	// creating the model matrix
+	mat4 model = mat4(1.0f);
+	model = scale(model, vec3(modelScale));
+	model = rotate(model, radians(rot), vec3(rotDir.x, rotDir.y, 0.0f));
+	//model = translate(model, vec3(0.0f, 0.0f, 0.0f));
+	// creating the view matrix
+	mat4 view = mat4(1.0f);
+	view = translate(view, glm::vec3(posX, posY, scrollDistance));
+
+	// creating the projection matrix (fov, screen ratio of 4:3, camera view range 0.1-500)
+	mat4 projection = perspective(45.0f, 4.0f / 3, 0.1f, 500.0f);
+
+	// Adding all matrices up to create combined matrix
+	mat4 mvp = projection * view * model;
+
+
+	//adding the Uniform to the shader
+	int mvpLoc = glGetUniformLocation(shader, "mvp");
+	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
 }
+
 void init(void) {
-
-
-	//glGenVertexArrays(NumVAOs, VAOs);
-	//glBindVertexArray(VAOs[Triangles]);
 
 	ShaderInfo  shaders[] =
 	{
@@ -170,72 +248,41 @@ void init(void) {
 		{ GL_FRAGMENT_SHADER, "Media/Triangles/triangles.frag" },
 		{ GL_NONE, NULL }
 	};
-
-	GLuint shader;
+	//error here
 	shader = LoadShaders(shaders);
 	//Sets the given object as the shader program to use.
 	//Parameters:
 	//GLuint Program - The shader program to use.
 	glUseProgram(shader);
 
-
-
-	//glGenBuffers(NumBuffers, Buffers);
-	//glBindBuffer(GL_ARRAY_BUFFER, Buffers[Triangles]);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>) * vertices.size(), &vertices[0][0], GL_STATIC_DRAW);
-
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[Indices]);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vector<GLuint>) * indices.size(), &indices[0][0], GL_STATIC_DRAW);
-
-	//glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-
-	////Texture Binding
-	//glBindBuffer(GL_ARRAY_BUFFER, Buffers[Tex]);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vector<GLfloat>) * texture_coords.size(), &texture_coords, GL_STATIC_DRAW);
-	//glVertexAttribPointer(tPosition, 2, GL_FLOAT,
-	//	GL_FALSE, 0, BUFFER_OFFSET(0));
-
-	// creating the model matrix
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
-	model = glm::rotate(model, glm::radians(-40.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
-
-	// creating the view matrix
-	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
-
-	// creating the projection matrix
-	glm::mat4 projection = glm::perspective(45.0f, 4.0f / 3, 0.1f, 0.0f);
-
-	// Adding all matrices up to create combined matrix
-	glm::mat4 mvp = projection * view * model;
-
-	//adding the Uniform to the shader
-	int mvpLoc = glGetUniformLocation(shader, "mvp");
-	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	//glEnableVertexAttribArray(vPosition);
-	//glEnableVertexAttribArray(cPosition);
-	//glEnableVertexAttribArray(tPosition);
 }
 
 //Initialises GLFW and opens the GLFW window. Sets the callback for user input.
-GLFWwindow* GLFWInit() {
+GLFWwindow* GLFWInit(RECT rect) {
 		//Initialises glfw
 		glfwInit();
+
 		//Creates a window of a determined size with a title
-		GLFWwindow* window = glfwCreateWindow(800, 600, "Scene View", NULL, NULL);
+		GLFWwindow* window = glfwCreateWindow(rect.right, rect.bottom, "Scene View", NULL, NULL);
 		//Make the window the currently highlighted window
 		glfwMakeContextCurrent(window);
 		//Initialises glew
-		glewInit();
+		glewExperimental = GL_TRUE;
+		GLenum initOkay = glewInit();
+		if (GLEW_OK != initOkay)
+		{
+			MessageBox(NULL, "Glew has encountered an error and must close.", "Fatal Error", MB_OK);
+			exit(0);
+		}
 		init();
 		//Sets the window that receives key callback and the method that is called
-		glfwSetKeyCallback(window, checkForInput);
-
+		glfwSetKeyCallback(window, CheckForKeyboardInput);
+		glfwSetScrollCallback(window, CheckForMouseWheel);
+		glfwSetMouseButtonCallback(window, CheckForMouseInput);
 		return window;
 }
 
-
-
+void SetBackgroundColour(float r, float g, float b, float a)
+{
+	col = RGBtoFloat(r, g, b, a);
+}

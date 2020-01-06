@@ -10,6 +10,7 @@
 #define OPTIONS_MENU_WIRE 6
 #define OPTIONS_MENU_DARK 11
 #define OPTIONS_MENU_LIGHT 12
+#define OPTIONS_MENU_BACKGROUND 13
 #define HELP_MENU_ABOUT 7
 #define HELP_MENU_HELP 8
 #define HELP_MENU_GITHUB 9
@@ -22,6 +23,7 @@ LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 
 void AddMenus(HWND);
 void OpenFileDialog(HWND);
+void ColourDialog(HWND hWnd);
 HMENU hMenu;
 
 //Creates parent window and initialises message processes
@@ -69,7 +71,7 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 			break;
 			///Occurs when exit button is pressed - Quits application
 		case FILE_MENU_EXIT:
-			DestroyWindow(hWnd);
+			SendMessage(hWnd, WM_CLOSE,NULL,NULL);
 			break;
 			///Occurs when Solid button is pressed - Renders objects as solid objects
 		case  OPTIONS_MENU_SOLID:
@@ -98,11 +100,14 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 			break;
 			///Occurs when Dark button is pressed - puts application in dark mode
 		case OPTIONS_MENU_DARK:
-
+			
 			break;
-			///Occurs when export button is pressed - puts application in light mode
+			///Occurs when light button is pressed - puts application in light mode
 		case OPTIONS_MENU_LIGHT:
 
+			break;
+		case OPTIONS_MENU_BACKGROUND:
+			ColourDialog(hWnd);
 			break;
 		default:
 
@@ -120,6 +125,29 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		PostQuitMessage(0);
 		break;
 	
+	case WM_CLOSE:
+	{
+		int msgID = MessageBox(NULL, "Are you sure you would like to quit?", "Confirmation", MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON2);
+
+		switch (msgID)
+		{
+		case IDYES:
+			DestroyWindow(hWnd);
+			exit(0);
+			break;
+
+		case IDNO:
+
+			break;
+		default:
+
+			break;
+		}
+	}
+		break;
+	case WM_EXITSIZEMOVE:
+
+		break;
 	default:
 		return DefWindowProcW(hWnd, msg, wp, lp);
 
@@ -139,20 +167,20 @@ void AddMenus(HWND hWnd)
 	///TODO - Add uxtheme and check registry file to see whether user has dark mode enabled, if so, enable this
 	//SetWindowTheme(hWnd, L"DarkMode_Explorer", NULL);
 
-	AppendMenu(hFileMenu, MF_STRING || MF_UNCHECKED, FILE_MENU_NEW, "New");
+	AppendMenu(hFileMenu, MF_STRING | MF_GRAYED, FILE_MENU_NEW, "New");
 	AppendMenu(hFileMenu, MF_STRING, FILE_MENU_OPEN, "Open");
-	AppendMenu(hFileMenu, MF_STRING, FILE_MENU_SAVE, "Save");
-	AppendMenu(hFileMenu, MF_STRING, FILE_MENU_EXPORT, "Export");
+	AppendMenu(hFileMenu, MF_STRING | MF_GRAYED, FILE_MENU_SAVE, "Save");
+	AppendMenu(hFileMenu, MF_STRING | MF_GRAYED, FILE_MENU_EXPORT, "Export");
 	AppendMenu(hFileMenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(hFileMenu, MF_STRING, FILE_MENU_EXIT, "Quit");
 	AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hFileMenu, "File");
 	
 	AppendMenu(hFillMenu, MF_STRING, OPTIONS_MENU_SOLID, "Solid");
 	AppendMenu(hFillMenu, MF_STRING, OPTIONS_MENU_WIRE, "Wireframe");
-
-	AppendMenu(hPreferencesMenu, MF_STRING, OPTIONS_MENU_DARK, "Dark Mode");
-	AppendMenu(hPreferencesMenu, MF_STRING, OPTIONS_MENU_LIGHT, "Light Mode");
-
+	
+	AppendMenu(hPreferencesMenu, MF_STRING | MF_GRAYED, OPTIONS_MENU_DARK, "Dark Mode");
+	AppendMenu(hPreferencesMenu, MF_STRING | MF_CHECKED | MF_GRAYED, OPTIONS_MENU_LIGHT, "Light Mode");
+	AppendMenu(hPreferencesMenu, MF_STRING, OPTIONS_MENU_BACKGROUND, "Change Background Colour");
 	AppendMenu(hOptionsMenu, MF_POPUP, (UINT_PTR)hFillMenu, "Fill");
 	AppendMenu(hOptionsMenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(hOptionsMenu, MF_POPUP, (UINT_PTR)hPreferencesMenu, "Preferences");
@@ -247,7 +275,30 @@ void OpenFileDialog(HWND hWnd)
 			 break;
 		 }
 	 }
+}
 
+void ColourDialog(HWND hWnd)
+{
+	CHOOSECOLOR cc;                 // common dialog box structure 
+	static COLORREF acrCustClr[16]; // array of custom colors
+	HBRUSH hbrush;                  // brush handle
+	static DWORD rgbCurrent;        // initial color selection
 
-	 
+	// Initialize CHOOSECOLOR 
+	ZeroMemory(&cc, sizeof(cc));
+	cc.lStructSize = sizeof(cc);
+	cc.hwndOwner = hWnd;
+	cc.lpCustColors = (LPDWORD)acrCustClr;
+	cc.rgbResult = rgbCurrent;
+	cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+
+	if (ChooseColor(&cc) == TRUE)
+	{
+		hbrush = CreateSolidBrush(cc.rgbResult);
+		rgbCurrent = cc.rgbResult;
+		float r = GetRValue(rgbCurrent);
+		float g = GetGValue(rgbCurrent);
+		float b = GetBValue(rgbCurrent);
+		SetBackgroundColour(r, g, b, 255.0f);
+	}
 }
