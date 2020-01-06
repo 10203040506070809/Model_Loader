@@ -55,7 +55,6 @@ void OpenModel(string path)
 	if (myFile.fail())
 	{
 		MessageBox(NULL, "An error occured while trying to load the file.", "Error", MB_OK);
-		OpenModel(path);
 	}
 	//Get everything after the last . which should give the filetype
 	string fileType = path.substr(path.find_last_of(".") + 1);
